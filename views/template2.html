@@ -1,0 +1,160 @@
+<!-- template2.html -->
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<div class="container" id="app">
+    <div class="row">
+        <h1>Search for Cities in India</h1><br>
+    </div>
+    <div class="row">
+        <form autocomplete="off" action="">
+            <div class="autocomplete" style="width:300px;">
+                <input id="myInput" type="text" name="myCountry" placeholder="search" v-model="query">
+                <div id="myInputautocomplete-list" class="autocomplete-items">
+                    <div @click="selected($event)" v-for="result in results">
+                        <strong>{{ result._source.name }}, {{ result._source.state }}</strong>
+                    </div>
+                </div>
+            </div>
+            <input type="submit">
+        </form>
+    </div>
+    <div class="row">
+    </div>
+</div>
+<script src="/elasticsearch.min.js"></script>
+<script>
+    // instantiate a new Elasticsearch client like you did on the client
+    var client = new elasticsearch.Client({
+        hosts: ['http://127.0.0.1:9200']
+    });
+
+    // create a new Vue instance
+    var app = new Vue({
+        el: '#app',
+        // declare the data for the component (An array that houses the results and a query that holds the current search string)
+        data: {
+            results: [],
+            query: ''
+        },
+        // declare methods in this Vue component. here only one method which performs the search is defined
+        methods: {
+            // function that calls the elastic search. here the query object is set just as that of the server.
+            //Here the query string is passed directly from Vue
+            selected: function(e) {
+                this.selectedCity = String(e.target.innerHTML);
+                this.selectedCity = this.selectedCity.replace("<strong>", "").replace("</strong>", "");
+                console.log(this.selectedCity);
+                this.query = this.selectedCity;
+                this.search();
+                document.getElementById('myInputautocomplete-list').innerHTML = '';
+            },
+            search: function() {
+                console.log(this.query)
+                if (this.query !== '') {
+                    var body = {
+                        size: 200,
+                        from: 0,
+                        query: {
+                            query_string: {
+                                query: this.query + '*',
+                                fields: ['name'],
+                                analyze_wildcard: true,
+                                allow_leading_wildcard: true
+                            }
+                        }
+                    }
+
+                    // search the Elasticsearch passing in the index, query object and type
+                    client.search({
+                            index: 'indian-cities-index',
+                            body: body,
+                            type: 'city'
+                        })
+                        .then(results => {
+                            console.log(`found ${results.hits.total} items in ${results.took}ms`);
+                            // set the results to the result array we have 
+                            this.results = results.hits.hits;
+                            console.log(this.results)
+                        })
+                        .catch(err => {
+                            console.log(err)
+                        });
+                } else {
+                    this.results = []
+                }
+            }
+        },
+        // declare Vue watchers
+        watch: {
+            // watch for change in the query string and recall the search method
+            query: function() {
+                this.search();
+            }
+        }
+    })
+</script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+    
+    body {
+        font: 16px 'GE Inspira';
+        text-align: -webkit-center;
+    }
+    
+    .autocomplete {
+        /*the container must be positioned relative:*/
+        position: relative;
+        display: inline-block;
+    }
+    
+    input {
+        border: 1px solid transparent;
+        background-color: #f1f1f1;
+        padding: 10px;
+        font-size: 16px;
+    }
+    
+    input[type=text] {
+        background-color: #f1f1f1;
+        width: 100%;
+    }
+    
+    input[type=submit] {
+        background-color: DodgerBlue;
+        color: #fff;
+    }
+    
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        /*position the autocomplete items to be the same width as the container:*/
+        top: 100%;
+        left: 0;
+        right: 0;
+    }
+    
+    .autocomplete-items div {
+        padding: 10px;
+        cursor: pointer;
+        background-color: #fff;
+        border-bottom: 1px solid #d4d4d4;
+    }
+    
+    .autocomplete-items div:hover {
+        /*when hovering an item:*/
+        background-color: #e9e9e9;
+    }
+    
+    .autocomplete-active {
+        /*when navigating through the items using the arrow keys:*/
+        background-color: DodgerBlue !important;
+        color: #ffffff;
+    }
+</style>

@@ -1,0 +1,4 @@
+elasticsearch-7.8.1/
+*.tar.gz
+node_modules/
+elasticsearch-7.8.1-darwin-x86_64.tar.gz.sha512
