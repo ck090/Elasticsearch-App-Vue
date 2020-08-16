@@ -1,2 +1,3 @@
 # Elastic Search App using Vue.js
-<img width="459" alt="Screenshot 2020-08-16 at 11 07 57 PM" src="https://user-images.githubusercontent.com/12717969/90340379-5c8e8300-e015-11ea-9556-ae2de24b2663.png">
+![ezgif-2-7766d7871499](https://user-images.githubusercontent.com/12717969/90340460-f6eec680-e015-11ea-85be-4f4c823fd4c2.gif)
+<br>Here's the GIF demonstrating the search usecase
