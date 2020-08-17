@@ -9,25 +9,7 @@ const client = new elasticsearch.Client({
 
 // create a new index called scotch.io-tutorial. If the index has already been created, this function fails safely
 client.indices.create({
-    index: 'indian-cities-index',
-    search_analyzer: {
-        my_search_analyzer: {
-            type: 'custom',
-            tokenizer: 'standard',
-            filter: [
-                'standard',
-                'lowercase',
-                'mynGram'
-            ]
-        }
-    },
-    filter: {
-        mynGram: {
-            type: 'nGram',
-            min_gram: 2,
-            max_gram: 50
-        }
-    }
+    index: 'indian-cities-index'
 }, function(error, response, status) {
     if (error) {
         console.log(error);

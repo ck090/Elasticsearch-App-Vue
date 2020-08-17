@@ -41,9 +41,36 @@ app.use(function(req, res, next) {
 
 // defined the base route and return with an HTML file called tempate.html
 app.get('/', function(req, res) {
-    res.sendFile('template2.html', {
+    res.sendFile('template.html', {
         root: path.join(__dirname, 'views')
     });
+})
+
+// define the /search route that should return elastic search results 
+app.get('/search', function(req, res) {
+    // declare the query object to search elastic search and return only 200 results from the first result found. 
+    // also match any data where the name is like the query string sent in
+    let body = {
+            size: 200,
+            from: 0,
+            query: {
+                query_string: {
+                    query: req.query['q'] + '*',
+                    fields: ['name'],
+                    analyze_wildcard: true,
+                    allow_leading_wildcard: true
+                }
+            }
+        }
+        // perform the actual search passing in the index, the search query and the type
+    client.search({ index: 'indian-cities-index', body: body, type: 'city' })
+        .then(results => {
+            res.send(results.hits.hits);
+        })
+        .catch(err => {
+            console.log(err)
+            res.send([]);
+        });
 })
 
 // listen on the specified port
