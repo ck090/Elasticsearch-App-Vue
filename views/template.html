@@ -12,7 +12,15 @@
                 <input id="myInput" type="text" name="myCountry" placeholder="search" v-model="query">
                 <div id="myInputautocomplete-list" class="autocomplete-items">
                     <div @click="selected($event)" v-for="result in results">
-                        <strong>{{ result._source.name }}, {{ result._source.state }}</strong>
+                        <strong>{{ result._source.name }}, {{ result._source.state }} </strong>
+                    </div>
+                </div>
+            </div>
+            <div class="autocomplete" style="width:300px;">
+                <input id="myInput" type="text" name="myCountry" placeholder="search from selected state" v-model="query2">
+                <div id="myInputautocomplete-list" class="autocomplete-items">
+                    <div @click="selected2($event)" v-for="result2 in results2">
+                        <strong>{{ result2._source.name }}, {{ result2._source.state }} </strong>
                     </div>
                 </div>
             </div>
@@ -31,18 +39,27 @@
         // declare the data for the component (An array that houses the results and a query that holds the current search string)
         data: {
             results: [],
-            query: ''
+            query: '',
+            query2: '',
+            results2: []
         },
         // declare methods in this Vue component. here only one method which performs the search is defined
         methods: {
             selected: function(e) {
                 this.selectedCity = String(e.target.innerHTML);
                 this.selectedCity = this.selectedCity.replace("<strong>", "").replace("</strong>", "");
-                console.log(this.selectedCity);
                 this.query = this.selectedCity;
                 this.search();
                 document.getElementById('myInputautocomplete-list').innerHTML = '';
             },
+
+            selected2: function(e) {
+                this.selectedCity = String(e.target.innerHTML);
+                this.selectedCity = this.selectedCity.replace("<strong>", "").replace("</strong>", "");
+                this.query2 = this.selectedCity;
+                document.getElementById('myInputautocomplete-list').innerHTML = '';
+            },
+
             // make an axios request to the server with the current search query
             search: function() {
                 console.log(this.query)
@@ -54,14 +71,29 @@
                 } else {
                     this.results = []
                 }
+            },
+
+            // make an axios request to the server with the current search query
+            search2: function() {
+                console.log(this.query2, this.query)
+                if (this.query2 !== '') {
+                    axios.get("http://127.0.0.1:3001/stateSearch?q=" + this.query2 + '&z=' + this.query)
+                        .then(response => {
+                            this.results2 = response.data;
+                        })
+                } else {
+                    this.results2 = []
+                }
             }
         },
         // declare Vue watchers
         watch: {
             // watch for change in the query string and recall the search method
             query: function() {
-                console.log('Called')
                 this.search();
+            },
+            query2: function() {
+                this.search2();
             }
         }
 

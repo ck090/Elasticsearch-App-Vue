@@ -50,6 +50,7 @@ app.get('/', function(req, res) {
 app.get('/search', function(req, res) {
     // declare the query object to search elastic search and return only 200 results from the first result found. 
     // also match any data where the name is like the query string sent in
+    console.log(req.query['q'], ' --> from search 1')
     let body = {
             size: 200,
             from: 0,
@@ -59,6 +60,44 @@ app.get('/search', function(req, res) {
                     fields: ['name'],
                     analyze_wildcard: true,
                     allow_leading_wildcard: true
+                }
+            }
+        }
+        // perform the actual search passing in the index, the search query and the type
+    client.search({ index: 'indian-cities-index', body: body, type: 'city' })
+        .then(results => {
+            res.send(results.hits.hits);
+        })
+        .catch(err => {
+            console.log(err)
+            res.send([]);
+        });
+})
+
+// define the /search2 route that should return elastic search results 
+app.get('/stateSearch', function(req, res) {
+    // declare the query object to search elastic search and return only 200 results from the first result found. 
+    // also match any data where the name is like the query string sent in
+    const stateFilter = req.query['z'].split(', ')[1]
+    console.log(req.query['q'], stateFilter, ' --> from search 2')
+    let body = {
+            size: 200,
+            from: 0,
+            query: {
+                bool: {
+                    must: [{
+                        query_string: {
+                            query: req.query['q'] + '*',
+                            fields: ['name', 'state'],
+                            analyze_wildcard: true,
+                            allow_leading_wildcard: true
+                        }
+                    }],
+                    filter: [{
+                        match: {
+                            state: stateFilter
+                        }
+                    }]
                 }
             }
         }
